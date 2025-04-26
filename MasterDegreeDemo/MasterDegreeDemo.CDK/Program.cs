@@ -1,2 +1,8 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿using Amazon.CDK;
+using MasterDegreeDemo.CDK;
+
+var app = new App();
+
+new DemoStack(app, "DemoStack");
+
+app.Synth();
