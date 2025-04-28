@@ -7,13 +7,13 @@ namespace MasterDegreeDemo.EventReceiver1.Consumers
     {
         public static event Action<Order> OnReceived = null!;
 
-        public Task Consume(ConsumeContext<OrderPaymentFailed> context)
+        public async Task Consume(ConsumeContext<OrderPaymentFailed> context)
         {
             logger.LogInformation("Received on {Consumer} an event with id {Id}", nameof(OrderPaymentFailedConsumer), context.Message.Order.Id);
 
             OnReceived?.Invoke(context.Message.Order);
 
-            return context.Publish(new OrderReservationReverted(context.Message.Order));
+            await context.Publish(new OrderReservationReverted(context.Message.Order));
         }
     }
 }

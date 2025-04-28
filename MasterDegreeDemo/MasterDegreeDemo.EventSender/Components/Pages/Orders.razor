@@ -1,4 +1,5 @@
-﻿@using MassTransit
+﻿@using BlazorBootstrap
+@using MassTransit
 @using MasterDegreeDemo.EventSender.Sagas
 @using MasterDegreeDemo.ServiceDefaults
 
@@ -7,32 +8,65 @@
 @rendermode InteractiveServer
 
 @inject IPublishEndpoint PublishEndpoint
-@inject ILogger<Publish> Ilogger
-@inject ISagaRepository<OrderSaga> OrderSagaRepository
+@inject ILogger<Publish> Logger
+
+@implements IDisposable
 
 <PageTitle>Orders</PageTitle>
 
-<div class="container d-flex gap-2">
+<div class="container d-flex flex-column gap-2">
     <InputText @bind-Value="productName" DisplayName="Product"/>
-    <button @onclick="PublishEvent" class="btn-primary">Publish</button>
+    <button @onclick="PublishEvent" class="btn btn-primary">Publish</button>
+
+    <Grid @ref="grid" TItem="OrderSaga" Class="table table-hover table-bordered table-striped"
+    Data="OrderStateMachine.Sagas.Values" Responsive="true">
+        <GridColumns>
+            <GridColumn TItem="OrderSaga" HeaderText="Id" PropertyName="Id">
+                @context.Id
+            </GridColumn>
+            <GridColumn TItem="OrderSaga" HeaderText="Product" PropertyName="ProductName">
+                @context.ProductName
+            </GridColumn>
+            <GridColumn TItem="OrderSaga" HeaderText="State" PropertyName="State">
+                @context.State
+            </GridColumn>
+        </GridColumns>
+    </Grid>
 </div>
 
 @code {
+    private Grid<OrderSaga> grid = default!;
+
     private string? productName;
 
-    private Task PublishEvent()
+    public void Dispose()
+    {
+        OrderStateMachine.OnReceive -= RefreshData;
+    }
+
+    protected override void OnInitialized()
+    {
+        OrderStateMachine.OnReceive += RefreshData;
+    }
+
+    private async void RefreshData()
+    {
+        await grid.RefreshDataAsync();
+    }
+
+    private async Task PublishEvent()
     {
         if (productName is null)
         {
-            return Task.CompletedTask;
+            return;
         }
 
-        Ilogger.LogInformation("Publishing");
+        var orderId = Guid.NewGuid();
 
-        return PublishEndpoint.Publish<OrderCreated>(new OrderCreated()
-        {
-            Id = NewId.NextSequentialGuid(),
-            ProductName = productName,
-        });
+        Logger.LogInformation("Publishing an order with id {Id}", orderId);
+
+        await PublishEndpoint.Publish<OrderCreated>(new OrderCreated(new Order(orderId, productName)));
+
+        productName = null;
     }
 }

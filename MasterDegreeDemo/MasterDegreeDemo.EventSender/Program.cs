@@ -1,3 +1,4 @@
+using MassTransit;
 using MasterDegreeDemo.EventSender;
 using MasterDegreeDemo.EventSender.Components;
 using MasterDegreeDemo.EventSender.Sagas;
@@ -8,7 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddMasstransitService(typeof(OrderSaga));
+builder.Services
+    .AddMasstransitService(typeof(OrderStateMachine))
+    .RegisterInMemorySagaRepository<OrderSaga>();
 
 var app = builder.Build();
 

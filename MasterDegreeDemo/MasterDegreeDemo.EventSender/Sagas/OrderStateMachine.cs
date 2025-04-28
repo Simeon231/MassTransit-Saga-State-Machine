@@ -5,6 +5,9 @@ namespace MasterDegreeDemo.EventSender.Sagas
 {
     public class OrderStateMachine : MassTransitStateMachine<OrderSaga>
     {
+        public static event Action OnReceive = null!;
+        public static Dictionary<Guid, OrderSaga> Sagas = [];
+
         public OrderStateMachine()
         {
             InstanceState(x => x.State);
@@ -40,7 +43,13 @@ namespace MasterDegreeDemo.EventSender.Sagas
 
         private void ConfigureStates()
         {
-            Initially(When(OrderCreatedEvent).TransitionTo(OrderCreated));
+            Initially(When(OrderCreatedEvent)
+                .Then(context =>
+                {
+                    context.Saga.Id = context.Message.Order.Id;
+                    context.Saga.ProductName = context.Message.Order.ProductName;
+                })
+                .TransitionTo(OrderCreated));
 
             During(OrderCreated,
                 When(OrderReservedEvent).TransitionTo(OrderReserved),
@@ -52,6 +61,26 @@ namespace MasterDegreeDemo.EventSender.Sagas
 
             During(OrderPaymentFailed,
                 When(OrderReservationRevertedEvent).TransitionTo(OrderReservationReverted));
+
+            WhenEnterAny(x =>
+                x.Then(binder =>
+                {
+                    if (binder.Saga.State == nameof(Initial))
+                    {
+                        return;
+                    }
+
+                    if (!Sagas.ContainsKey(binder.Saga.Id))
+                    {
+                        Sagas.Add(binder.Saga.Id, binder.Saga);
+                    }
+                    else
+                    {
+                        Sagas[binder.Saga.Id] = binder.Saga;
+                    }
+
+                    OnReceive?.Invoke();
+                }));
         }
     }
 }

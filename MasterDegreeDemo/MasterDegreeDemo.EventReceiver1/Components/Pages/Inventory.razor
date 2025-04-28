@@ -1,4 +1,5 @@
-﻿@using MassTransit
+﻿@using BlazorBootstrap
+@using MassTransit
 @using MasterDegreeDemo.EventReceiver1.Consumers
 @using MasterDegreeDemo.ServiceDefaults
 
@@ -12,7 +13,7 @@
 
 <PageTitle>Invetory</PageTitle>
 
-<div class="container d-flex gap-2">
+<div class="container d-flex flex-column gap-2">
     <h1>Invetory</h1>
     @if (orderCreated is null)
     {
@@ -21,48 +22,66 @@
     else
     {
         <h3>@orderCreated.ProductName product received</h3>
-        <button @onclick="AcceptOrder">Reserve</button>
-        <button @onclick="DeclineOrder">Decline</button>
+        <button @onclick="AcceptOrder" class="btn btn-success">Reserve</button>
+        <button @onclick="DeclineOrder" class="btn btn-danger">Decline</button>
     }
+
+    <Grid @ref="grid" Data="Orders.Values" TItem="Order" Class="table table-hover table-bordered table-striped"
+    Responsive="true">
+        <GridColumn TItem="Order" HeaderText="Id" PropertyName="Id">
+            @context.Id
+        </GridColumn>
+        <GridColumn TItem="Order" HeaderText="Product" PropertyName="ProductName">
+            @context.ProductName
+        </GridColumn>
+    </Grid>
 </div>
 
 @code {
-    private Order? orderCreated;
-    private Order? orderPaymentFailed;
+    private static Dictionary<Guid, Order> Orders = [];
 
-    protected override void OnInitialized()
-    {
-        OrderCreatedConsumer.OrderCreated += ReceiveOrderCreated;
-        OrderPaymentFailedConsumer.OnReceived += ReceivePaymentFailed;
-    }
+    private Order? orderCreated;
+
+    private Grid<Order> grid = default!;
 
     public void Dispose()
     {
-        OrderCreatedConsumer.OrderCreated -= ReceiveOrderCreated;
+        OrderCreatedConsumer.OnReceived -= ReceiveOrderCreated;
+        OrderPaymentFailedConsumer.OnReceived -= ReceivePaymentFailed;
     }
 
-    private void ReceiveOrderCreated(Order order)
+    protected override void OnInitialized()
+    {
+        OrderCreatedConsumer.OnReceived += ReceiveOrderCreated;
+        OrderPaymentFailedConsumer.OnReceived += ReceivePaymentFailed;
+    }
+
+    private async void ReceiveOrderCreated(Order order)
     {
         this.orderCreated = order;
 
-        base.StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
-    private void ReceivePaymentFailed(Order order)
+    private async void ReceivePaymentFailed(Order order)
     {
-        this.orderPaymentFailed = order;
+        Orders.Remove(order.Id);
 
-        base.StateHasChanged();
+        await grid.RefreshDataAsync();
     }
 
-    private void AcceptOrder()
+    private async Task AcceptOrder()
     {
         if (orderCreated is null)
         {
             return;
         }
 
-        PublishEndpoint.Publish(new OrderReserved(orderCreated));
+        Orders.Add(orderCreated.Id, orderCreated);
+
+        await grid.RefreshDataAsync();
+
+        OrderCreatedConsumer.Resume.SetResult(true);
 
         orderCreated = null;
     }
@@ -74,7 +93,8 @@
             return;
         }
 
-        PublishEndpoint.Publish(new OrderReservationFailed(orderCreated));
+        OrderCreatedConsumer.Resume.SetResult(false);
+
         orderCreated = null;
     }
 }

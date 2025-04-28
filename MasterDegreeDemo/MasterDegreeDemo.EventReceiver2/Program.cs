@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddMasstransitService(typeof(TransactionalEventConsumer));
+builder.Services.AddMasstransitService(typeof(OrderReservedConsumer));
 
 var app = builder.Build();
 

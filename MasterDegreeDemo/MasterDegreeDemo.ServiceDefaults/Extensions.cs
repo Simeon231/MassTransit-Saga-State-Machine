@@ -12,18 +12,16 @@ namespace Microsoft.Extensions.Hosting;
 
 public static class Extensions
 {
-    public static IServiceCollection AddMasstransitService(this IServiceCollection services, Type? consumerMarker = null)
+    public static IServiceCollection AddMasstransitService(this IServiceCollection services, Type assemblyMarker)
     {
         return services.AddMassTransit(conf =>
         {
-            conf.AddConsumers(consumerMarker);
+            conf.AddSagaStateMachinesFromNamespaceContaining(assemblyMarker);
+            conf.AddConsumersFromNamespaceContaining(assemblyMarker);
 
             conf.UsingAmazonSqs((context, cfg) =>
             {
-                cfg.Host("eu-west-1", h =>
-                {
-                    // TODO provide from cdk
-                });
+                cfg.Host("eu-west-1");
 
                 cfg.ConfigureEndpoints(context);
             });

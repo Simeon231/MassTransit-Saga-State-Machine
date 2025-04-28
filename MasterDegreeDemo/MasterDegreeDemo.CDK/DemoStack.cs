@@ -3,6 +3,7 @@ using Amazon.CDK.AWS.ApplicationAutoScaling;
 using Amazon.CDK.AWS.EC2;
 using Amazon.CDK.AWS.ECS;
 using Amazon.CDK.AWS.ECS.Patterns;
+using Amazon.CDK.AWS.IAM;
 using Constructs;
 
 namespace MasterDegreeDemo.CDK
@@ -33,17 +34,29 @@ namespace MasterDegreeDemo.CDK
 
             CreateApp(this, cluster, "EventReceiver1", "./MasterDegreeDemo.EventReceiver1/Dockerfile", 80);
 
-            //CreateBlazorApp(this, cluster, "EventReceiver2", "./BlazorApp2", 80);
+            CreateApp(this, cluster, "EventReceiver2", "./MasterDegreeDemo.EventReceiver2/Dockerfile", 80);
 
-            //CreateBlazorApp(this, cluster, "BlazorApp3", "./BlazorApp3", 80);
+            CreateApp(this, cluster, "EventSender", "./MasterDegreeDemo.EventSender/Dockerfile", 80);
         }
 
         private void CreateApp(Construct scope, Cluster cluster, string appName, string dockerPath, int containerPort)
         {
+
+            var taskRole = new Role(this, "FargateTaskRole", new RoleProps
+            {
+                AssumedBy = new ServicePrincipal("ecs-tasks.amazonaws.com"),
+                ManagedPolicies =
+                [
+                    ManagedPolicy.FromAwsManagedPolicyName("AmazonSQSFullAccess"),
+                    ManagedPolicy.FromAwsManagedPolicyName("AmazonSNSFullAccess")
+                ]
+            });
+
             var taskDefinition = new FargateTaskDefinition(scope, $"{appName}Task", new FargateTaskDefinitionProps
             {
                 Cpu = 256,
                 MemoryLimitMiB = 512,
+                TaskRole = taskRole,
             });
 
             taskDefinition.AddContainer($"{appName}Container", new ContainerDefinitionOptions

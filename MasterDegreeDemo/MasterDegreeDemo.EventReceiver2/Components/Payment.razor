@@ -1,5 +1,4 @@
 ﻿@using MassTransit
-@using MasterDegreeDemo.EventReceiver1.Consumers
 @using MasterDegreeDemo.EventReceiver2.Consumers
 @using MasterDegreeDemo.ServiceDefaults
 
@@ -13,68 +12,61 @@
 
 <PageTitle>Payment</PageTitle>
 
-<div class="container d-flex gap-2">
+<div class="container d-flex flex-column gap-2">
     <h1>Payment</h1>
-    @if (orderReserved is null)
+    @if (order is null)
     {
         <h3>Nothing received</h3>
     }
     else
     {
-        <h3>@orderReserved.ProductName product received</h3>
-        <button @onclick="PayOrder">Pay</button>
-        <button @onclick="DeclineOrder">Decline</button>
+        <h3>@order.ProductName product received</h3>
+        <button @onclick="PayOrder" class="btn btn-success">Pay</button>
+        <button @onclick="DeclineOrder" class="btn btn-danger">Decline</button>
     }
 </div>
 
 @code {
-    private OrderReserved? orderReserved;
+    private Order? order;
 
     protected override void OnInitialized()
     {
-        OrderReservedConsumer.OnReceived += ReceiveEvent;
+        OrderReservedConsumer.OnReceived += OrderReserved;
     }
 
     public void Dispose()
     {
-        OrderReservedConsumer.OnReceived -= ReceiveEvent;
+        OrderReservedConsumer.OnReceived -= OrderReserved;
     }
 
-    private void ReceiveEvent(OrderReserved orderReserved)
+    private void OrderReserved(Order orderReserved)
     {
-        this.orderReserved = orderReserved;
+        this.order = orderReserved;
 
-        base.StateHasChanged();
+        InvokeAsync(base.StateHasChanged);
     }
 
     private void PayOrder()
     {
-        if (orderReserved is null)
+        if (order is null)
         {
             return;
         }
 
-        PublishEndpoint.Publish(new OrderPaymentSucceded
-        {
-            Id = orderReserved.Id,
-            ProductName = orderReserved.ProductName,
-        });
+        OrderReservedConsumer.Resume.SetResult(true);
 
-        orderReserved = null;
+        order = null;
     }
 
     private void DeclineOrder()
     {
-        if (orderReserved is null)
+        if (order is null)
         {
             return;
         }
 
-        PublishEndpoint.Publish(new OrderPaymentFailed
-        {
-            Id = orderReserved.Id,
-            ProductName = orderReserved.ProductName,
-        });
-        orderReserved = null;
+        OrderReservedConsumer.Resume.SetResult(false);
+
+        order = null;
     }
 }
