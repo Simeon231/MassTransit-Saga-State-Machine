@@ -1,16 +1,14 @@
-using MasterDegreeDemo.EventReceiver2;
-using MasterDegreeDemo.EventReceiver2.Components;
-using MasterDegreeDemo.EventReceiver2.Consumers;
+using MasterDegreeDemo.EventSender;
+using MasterDegreeDemo.EventSender.Components;
+using MasterDegreeDemo.EventSender.Sagas;
 
 var builder = WebApplication.CreateBuilder(args);
-
-//builder.AddServiceDefaults();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddMasstransitService(typeof(TransactionalEventConsumer));
+builder.Services.AddMasstransitService(typeof(OrderSaga));
 
 var app = builder.Build();
 

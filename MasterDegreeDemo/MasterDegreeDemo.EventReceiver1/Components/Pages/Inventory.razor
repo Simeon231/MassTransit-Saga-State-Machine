@@ -1,0 +1,80 @@
+﻿@using MassTransit
+@using MasterDegreeDemo.EventReceiver1.Consumers
+@using MasterDegreeDemo.ServiceDefaults
+
+@page "/invetory"
+
+@implements IDisposable
+
+@inject IPublishEndpoint PublishEndpoint
+
+@rendermode InteractiveServer
+
+<PageTitle>Invetory</PageTitle>
+
+<div class="container d-flex gap-2">
+    <h1>Invetory</h1>
+    @if (orderCreated is null)
+    {
+        <h3>Nothing received</h3>
+    }
+    else
+    {
+        <h3>@orderCreated.ProductName product received</h3>
+        <button @onclick="AcceptOrder">Reserve</button>
+        <button @onclick="DeclineOrder">Decline</button>
+    }
+</div>
+
+@code {
+    private Order? orderCreated;
+    private Order? orderPaymentFailed;
+
+    protected override void OnInitialized()
+    {
+        OrderCreatedConsumer.OrderCreated += ReceiveOrderCreated;
+        OrderPaymentFailedConsumer.OnReceived += ReceivePaymentFailed;
+    }
+
+    public void Dispose()
+    {
+        OrderCreatedConsumer.OrderCreated -= ReceiveOrderCreated;
+    }
+
+    private void ReceiveOrderCreated(Order order)
+    {
+        this.orderCreated = order;
+
+        base.StateHasChanged();
+    }
+
+    private void ReceivePaymentFailed(Order order)
+    {
+        this.orderPaymentFailed = order;
+
+        base.StateHasChanged();
+    }
+
+    private void AcceptOrder()
+    {
+        if (orderCreated is null)
+        {
+            return;
+        }
+
+        PublishEndpoint.Publish(new OrderReserved(orderCreated));
+
+        orderCreated = null;
+    }
+
+    private void DeclineOrder()
+    {
+        if (orderCreated is null)
+        {
+            return;
+        }
+
+        PublishEndpoint.Publish(new OrderReservationFailed(orderCreated));
+        orderCreated = null;
+    }
+}

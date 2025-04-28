@@ -1,0 +1,38 @@
+﻿@using MassTransit
+@using MasterDegreeDemo.EventSender.Sagas
+@using MasterDegreeDemo.ServiceDefaults
+
+@page "/orders"
+
+@rendermode InteractiveServer
+
+@inject IPublishEndpoint PublishEndpoint
+@inject ILogger<Publish> Ilogger
+@inject ISagaRepository<OrderSaga> OrderSagaRepository
+
+<PageTitle>Orders</PageTitle>
+
+<div class="container d-flex gap-2">
+    <InputText @bind-Value="productName" DisplayName="Product"/>
+    <button @onclick="PublishEvent" class="btn-primary">Publish</button>
+</div>
+
+@code {
+    private string? productName;
+
+    private Task PublishEvent()
+    {
+        if (productName is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        Ilogger.LogInformation("Publishing");
+
+        return PublishEndpoint.Publish<OrderCreated>(new OrderCreated()
+        {
+            Id = NewId.NextSequentialGuid(),
+            ProductName = productName,
+        });
+    }
+}

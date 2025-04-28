@@ -1,4 +1,6 @@
+using MasterDegreeDemo.EventReceiver1;
 using MasterDegreeDemo.EventReceiver1.Components;
+using MasterDegreeDemo.EventReceiver1.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddMasstransitService(typeof(OrderCreatedConsumer));
 
 var app = builder.Build();
 

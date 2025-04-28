@@ -1,0 +1,28 @@
+﻿@* @using MassTransit
+@using MasterDegreeDemo.ServiceDefaults
+
+@page "/publish"
+
+@rendermode InteractiveServer
+
+@inject IPublishEndpoint PublishEndpoint
+@inject ILogger<Publish> Ilogger
+
+<PageTitle>Publish</PageTitle>
+
+<div class="container">
+    <button @onclick="PublishEvent" class="btn-primary">Publish</button>
+</div>
+
+@code {
+    private Task PublishEvent()
+    {
+        Ilogger.LogInformation("Publishing");
+
+        return PublishEndpoint.Publish<OrderCreated>(new OrderCreated()
+        {
+            Id = DateTime.Now.ToString(),
+        });
+    }
+}
+ *@

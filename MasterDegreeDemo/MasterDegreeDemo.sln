@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MasterDegreeDemo.EventRecei
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MasterDegreeDemo.CDK", "MasterDegreeDemo.CDK\MasterDegreeDemo.CDK.csproj", "{C021445E-38F2-878C-AF2D-737C43685BD9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MasterDegreeDemo.EventSender", "MasterDegreeDemo.EventSender\MasterDegreeDemo.EventSender.csproj", "{7903E955-E3C8-4200-AF6D-16B13EB15ACA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{C021445E-38F2-878C-AF2D-737C43685BD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C021445E-38F2-878C-AF2D-737C43685BD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C021445E-38F2-878C-AF2D-737C43685BD9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7903E955-E3C8-4200-AF6D-16B13EB15ACA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7903E955-E3C8-4200-AF6D-16B13EB15ACA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7903E955-E3C8-4200-AF6D-16B13EB15ACA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7903E955-E3C8-4200-AF6D-16B13EB15ACA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
