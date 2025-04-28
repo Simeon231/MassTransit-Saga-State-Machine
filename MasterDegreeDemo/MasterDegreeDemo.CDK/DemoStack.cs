@@ -10,7 +10,7 @@ namespace MasterDegreeDemo.CDK
 {
     public class DemoStack : Stack
     {
-        public DemoStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
+        public DemoStack(Construct scope, string id, IStackProps? props = null) : base(scope, id, props)
         {
             var vpc = new Vpc(this, "BlazorVpc", new VpcProps
             {
@@ -42,7 +42,7 @@ namespace MasterDegreeDemo.CDK
         private void CreateApp(Construct scope, Cluster cluster, string appName, string dockerPath, int containerPort)
         {
 
-            var taskRole = new Role(this, "FargateTaskRole", new RoleProps
+            var taskRole = new Role(this, $"{appName}FargateTaskRole", new RoleProps
             {
                 AssumedBy = new ServicePrincipal("ecs-tasks.amazonaws.com"),
                 ManagedPolicies =
@@ -71,7 +71,20 @@ namespace MasterDegreeDemo.CDK
                     {
                         ContainerPort = containerPort
                     }
-                }
+                },
+                HealthCheck = new HealthCheck()
+                {
+                    Command = ["CMD-SHELL", "curl -f http://localhost:80/health || exit 1"],
+                    Interval = Duration.Seconds(30),
+                    Timeout = Duration.Seconds(5),
+                    Retries = 3,
+                    StartPeriod = Duration.Seconds(10)
+                },
+                Logging = LogDriver.AwsLogs(new AwsLogDriverProps()
+                {
+                    LogRetention = Amazon.CDK.AWS.Logs.RetentionDays.ONE_DAY,
+                    StreamPrefix = appName,
+                }),
             });
 
             var service = new FargateService(scope, $"{appName}Service", new FargateServiceProps
@@ -93,30 +106,6 @@ namespace MasterDegreeDemo.CDK
 
             // Allow inbound traffic to the container port
             service.Connections.AllowFromAnyIpv4(Port.Tcp(containerPort));
-        }
-
-        private void CreateLoadBalancedApp(Construct scope, Cluster cluster, string appName, string dockerPath, int containerPort)
-        {
-            var service = new ApplicationLoadBalancedFargateService(scope, $"{appName}Service", new ApplicationLoadBalancedFargateServiceProps
-            {
-                Cluster = cluster,
-                TaskImageOptions = new ApplicationLoadBalancedTaskImageOptions
-                {
-                    Image = ContainerImage.FromAsset(dockerPath), // This will build from Dockerfile
-                    ContainerPort = containerPort,
-                },
-                DesiredCount = 1,
-                PublicLoadBalancer = true,
-                Cpu = 256,
-                MemoryLimitMiB = 512,
-            });
-
-            // Attach AutoScaling
-            var scalableTarget = service.Service.AutoScaleTaskCount(new EnableScalingProps
-            {
-                MinCapacity = 1,
-                MaxCapacity = 1, // prevent auto-scaling
-            });
         }
     }
 }

@@ -9,6 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddHealthChecks();
+
 builder.Services
     .AddMasstransitService(typeof(OrderStateMachine))
     .RegisterInMemorySagaRepository<OrderSaga>();
@@ -25,6 +27,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseHealthChecks("/health");
 
 app.UseAntiforgery();
 

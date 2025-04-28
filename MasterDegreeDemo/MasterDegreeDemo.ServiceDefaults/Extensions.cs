@@ -21,7 +21,7 @@ public static class Extensions
 
             conf.UsingAmazonSqs((context, cfg) =>
             {
-                cfg.Host("eu-west-1");
+                cfg.Host("eu-west-1", _ => { });
 
                 cfg.ConfigureEndpoints(context);
             });

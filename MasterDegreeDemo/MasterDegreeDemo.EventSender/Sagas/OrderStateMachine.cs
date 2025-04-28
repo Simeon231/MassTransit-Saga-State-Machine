@@ -1,6 +1,8 @@
 ﻿using MassTransit;
 using MasterDegreeDemo.ServiceDefaults;
 
+#pragma warning disable CS8618
+
 namespace MasterDegreeDemo.EventSender.Sagas
 {
     public class OrderStateMachine : MassTransitStateMachine<OrderSaga>
@@ -17,19 +19,19 @@ namespace MasterDegreeDemo.EventSender.Sagas
             ConfigureStates();
         }
 
-        public State OrderCreated { get; set; }
-        public State OrderReserved { get; set; }
-        public State OrderReservationFailed { get; set; }
-        public State OrderReservationReverted { get; set; }
-        public State OrderPaymentSucceded { get; set; }
-        public State OrderPaymentFailed { get; set; }
+        public State OrderCreated { get; }
+        public State OrderReserved { get; }
+        public State OrderReservationFailed { get; }
+        public State OrderReservationReverted { get; }
+        public State OrderPaymentSucceded { get; }
+        public State OrderPaymentFailed { get; }
 
-        public Event<OrderCreated> OrderCreatedEvent { get; set; }
-        public Event<OrderReserved> OrderReservedEvent { get; set; }
-        public Event<OrderReservationFailed> OrderReservationFailedEvent { get; set; }
-        public Event<OrderReservationReverted> OrderReservationRevertedEvent { get; set; }
-        public Event<OrderPaymentSucceded> OrderPaymentSuccededEvent { get; set; }
-        public Event<OrderPaymentFailed> OrderPaymentFailedEvent { get; set; }
+        public Event<OrderCreated> OrderCreatedEvent { get; }
+        public Event<OrderReserved> OrderReservedEvent { get; }
+        public Event<OrderReservationFailed> OrderReservationFailedEvent { get; }
+        public Event<OrderReservationReverted> OrderReservationRevertedEvent { get; }
+        public Event<OrderPaymentSucceded> OrderPaymentSuccededEvent { get; }
+        public Event<OrderPaymentFailed> OrderPaymentFailedEvent { get; }
 
         private void ConfigureEvents()
         {

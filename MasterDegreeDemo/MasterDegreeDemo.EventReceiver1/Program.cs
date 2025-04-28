@@ -10,6 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddHealthChecks();
+
 builder.Services.AddMasstransitService(typeof(OrderCreatedConsumer));
 
 var app = builder.Build();
@@ -26,6 +28,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseHealthChecks("/health");
 
 app.UseAntiforgery();
 
