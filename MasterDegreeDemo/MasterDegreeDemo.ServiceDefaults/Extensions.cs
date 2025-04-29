@@ -5,7 +5,7 @@ namespace Microsoft.Extensions.Hosting;
 
 public static class Extensions
 {
-    public static IServiceCollection AddMasstransitService(this IServiceCollection services, Type assemblyMarker)
+    public static IServiceCollection AddMasstransitService(this IServiceCollection services, Type assemblyMarker, string environment)
     {
         return services.AddMassTransit(conf =>
         {
@@ -16,7 +16,11 @@ public static class Extensions
             {
                 cfg.Host("eu-west-1", _ => { });
 
-                cfg.ConfigureEndpoints(context);
+                var prefixEntityFormatter = new PrefixEntityNameFormatter(cfg.MessageTopology.EntityNameFormatter, environment);
+                cfg.MessageTopology.SetEntityNameFormatter(prefixEntityFormatter);
+
+                var kebabEndpointFormatter = new KebabCaseEndpointNameFormatter(environment);
+                cfg.ConfigureEndpoints(context, kebabEndpointFormatter);
             });
         });
     }

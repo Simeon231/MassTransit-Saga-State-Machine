@@ -11,7 +11,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddHealthChecks();
 
 builder.Services
-    .AddMasstransitService(typeof(OrderStateMachine))
+    .AddMasstransitService(typeof(OrderStateMachine), builder.Environment.EnvironmentName)
     .RegisterInMemorySagaRepository<OrderSaga>();
 
 var app = builder.Build();

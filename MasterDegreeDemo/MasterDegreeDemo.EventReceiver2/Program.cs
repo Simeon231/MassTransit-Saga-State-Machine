@@ -9,7 +9,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddHealthChecks();
 
-builder.Services.AddMasstransitService(typeof(OrderReservedConsumer));
+builder.Services.AddMasstransitService(typeof(OrderReservedConsumer), builder.Environment.EnvironmentName);
 
 var app = builder.Build();
 
