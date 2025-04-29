@@ -1,5 +1,4 @@
 using MassTransit;
-using MasterDegreeDemo.EventSender;
 using MasterDegreeDemo.EventSender.Components;
 using MasterDegreeDemo.EventSender.Sagas;
 

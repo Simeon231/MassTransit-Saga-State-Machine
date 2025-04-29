@@ -1,10 +1,7 @@
-using MasterDegreeDemo.EventReceiver1;
 using MasterDegreeDemo.EventReceiver1.Components;
 using MasterDegreeDemo.EventReceiver1.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
-
-//builder.AddServiceDefaults();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -15,8 +12,6 @@ builder.Services.AddHealthChecks();
 builder.Services.AddMasstransitService(typeof(OrderCreatedConsumer));
 
 var app = builder.Build();
-
-//app.MapDefaultEndpoints();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

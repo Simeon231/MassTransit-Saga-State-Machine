@@ -1,10 +1,7 @@
-using MasterDegreeDemo.EventReceiver2;
 using MasterDegreeDemo.EventReceiver2.Components;
 using MasterDegreeDemo.EventReceiver2.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
-
-//builder.AddServiceDefaults();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

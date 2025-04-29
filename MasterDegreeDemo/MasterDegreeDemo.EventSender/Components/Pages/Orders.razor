@@ -8,13 +8,14 @@
 @rendermode InteractiveServer
 
 @inject IPublishEndpoint PublishEndpoint
-@inject ILogger<Publish> Logger
+@inject ILogger<Orders> Logger
 
 @implements IDisposable
 
 <PageTitle>Orders</PageTitle>
 
 <div class="container d-flex flex-column gap-2">
+    <h1>Orders</h1>
     <InputText @bind-Value="productName" DisplayName="Product"/>
     <button @onclick="PublishEvent" class="btn btn-primary">Publish</button>
 
