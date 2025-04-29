@@ -41,7 +41,6 @@ namespace MasterDegreeDemo.CDK
 
         private void CreateApp(Construct scope, Cluster cluster, string appName, string dockerPath, int containerPort)
         {
-
             var taskRole = new Role(this, $"{appName}FargateTaskRole", new RoleProps
             {
                 AssumedBy = new ServicePrincipal("ecs-tasks.amazonaws.com"),
@@ -65,26 +64,22 @@ namespace MasterDegreeDemo.CDK
                 {
                     File = dockerPath,
                 }),
-                PortMappings = new[]
-                {
+                PortMappings =
+                [
                     new PortMapping
                     {
                         ContainerPort = containerPort
                     }
-                },
-                HealthCheck = new HealthCheck()
-                {
-                    Command = ["CMD-SHELL", "curl -f http://localhost:80/health || exit 1"],
-                    Interval = Duration.Seconds(30),
-                    Timeout = Duration.Seconds(5),
-                    Retries = 3,
-                    StartPeriod = Duration.Seconds(10)
-                },
+                ],
                 Logging = LogDriver.AwsLogs(new AwsLogDriverProps()
                 {
                     LogRetention = Amazon.CDK.AWS.Logs.RetentionDays.ONE_DAY,
                     StreamPrefix = appName,
                 }),
+                Environment = new Dictionary<string, string>
+                {
+                    ["ASPNETCORE_HTTP_PORTS"] = containerPort.ToString(),
+                },
             });
 
             var service = new FargateService(scope, $"{appName}Service", new FargateServiceProps

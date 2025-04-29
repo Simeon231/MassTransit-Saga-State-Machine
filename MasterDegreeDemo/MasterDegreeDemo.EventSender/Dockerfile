@@ -15,7 +15,6 @@ RUN dotnet publish "./MasterDegreeDemo.EventSender.csproj" -c $BUILD_CONFIGURATI
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
+EXPOSE 80
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "MasterDegreeDemo.EventSender.dll"]

@@ -9,4 +9,4 @@ try {
 Write-Host ""
 Write-Host "[INFO] Docker is running. Deploying CDK stack..." -ForegroundColor Green
 
-cdk deploy
+cdk deploy --require-approval never

@@ -24,8 +24,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
-
 app.UseHealthChecks("/health");
 
 app.UseAntiforgery();
