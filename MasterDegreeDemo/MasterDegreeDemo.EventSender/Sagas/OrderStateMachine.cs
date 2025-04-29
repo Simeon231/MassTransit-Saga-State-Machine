@@ -23,14 +23,14 @@ namespace MasterDegreeDemo.EventSender.Sagas
         public State OrderReserved { get; }
         public State OrderReservationFailed { get; }
         public State OrderReservationReverted { get; }
-        public State OrderPaymentSucceded { get; }
+        public State OrderPaymentSucceeded { get; }
         public State OrderPaymentFailed { get; }
 
         public Event<OrderCreated> OrderCreatedEvent { get; }
         public Event<OrderReserved> OrderReservedEvent { get; }
         public Event<OrderReservationFailed> OrderReservationFailedEvent { get; }
         public Event<OrderReservationReverted> OrderReservationRevertedEvent { get; }
-        public Event<OrderPaymentSucceded> OrderPaymentSuccededEvent { get; }
+        public Event<OrderPaymentSucceeded> OrderPaymentSucceededEvent { get; }
         public Event<OrderPaymentFailed> OrderPaymentFailedEvent { get; }
 
         private void ConfigureEvents()
@@ -39,7 +39,7 @@ namespace MasterDegreeDemo.EventSender.Sagas
             Event(() => OrderReservedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
             Event(() => OrderReservationFailedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
             Event(() => OrderReservationRevertedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
-            Event(() => OrderPaymentSuccededEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
+            Event(() => OrderPaymentSucceededEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
             Event(() => OrderPaymentFailedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
         }
 
@@ -58,7 +58,7 @@ namespace MasterDegreeDemo.EventSender.Sagas
                 When(OrderReservationFailedEvent).TransitionTo(OrderReservationFailed));
 
             During(OrderReserved,
-                When(OrderPaymentSuccededEvent).TransitionTo(OrderPaymentSucceded),
+                When(OrderPaymentSucceededEvent).TransitionTo(OrderPaymentSucceeded),
                 When(OrderPaymentFailedEvent).TransitionTo(OrderPaymentFailed));
 
             During(OrderPaymentFailed,

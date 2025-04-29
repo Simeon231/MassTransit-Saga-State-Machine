@@ -29,7 +29,7 @@ namespace MasterDegreeDemo.EventReceiver2.Consumers
             {
                 logger.LogInformation("Payment successful with id {Id}", context.Message.Order.Id);
 
-                await context.Publish(new OrderPaymentSucceded(context.Message.Order));
+                await context.Publish(new OrderPaymentSucceeded(context.Message.Order));
             }
             else
             {
