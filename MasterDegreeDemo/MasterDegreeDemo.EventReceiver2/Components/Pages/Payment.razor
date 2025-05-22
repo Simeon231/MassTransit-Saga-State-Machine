@@ -31,12 +31,12 @@
 
     protected override void OnInitialized()
     {
-        OrderReservedConsumer.OnReceived += OrderReserved;
+        ProcessOrderPaymentConsumer.OnReceived += OrderReserved;
     }
 
     public void Dispose()
     {
-        OrderReservedConsumer.OnReceived -= OrderReserved;
+        ProcessOrderPaymentConsumer.OnReceived -= OrderReserved;
     }
 
     private void OrderReserved(Order orderReserved)
@@ -53,7 +53,7 @@
             return;
         }
 
-        OrderReservedConsumer.Resume.SetResult(true);
+        ProcessOrderPaymentConsumer.Resume.SetResult(true);
 
         order = null;
     }
@@ -65,7 +65,7 @@
             return;
         }
 
-        OrderReservedConsumer.Resume.SetResult(false);
+        ProcessOrderPaymentConsumer.Resume.SetResult(false);
 
         order = null;
     }

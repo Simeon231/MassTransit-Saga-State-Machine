@@ -46,14 +46,14 @@
 
     public void Dispose()
     {
-        OrderCreatedConsumer.OnReceived -= ReceiveOrderCreated;
-        OrderPaymentFailedConsumer.OnReceived -= ReceivePaymentFailed;
+        ReserveOrderConsumer.OnReceived -= ReceiveOrderCreated;
+        RevertOrderReservationConsumer.OnReceived -= ReceivePaymentFailed;
     }
 
     protected override void OnInitialized()
     {
-        OrderCreatedConsumer.OnReceived += ReceiveOrderCreated;
-        OrderPaymentFailedConsumer.OnReceived += ReceivePaymentFailed;
+        ReserveOrderConsumer.OnReceived += ReceiveOrderCreated;
+        RevertOrderReservationConsumer.OnReceived += ReceivePaymentFailed;
     }
 
     private async void ReceiveOrderCreated(Order order)
@@ -81,7 +81,7 @@
 
         await grid.RefreshDataAsync();
 
-        OrderCreatedConsumer.Resume.SetResult(true);
+        ReserveOrderConsumer.Resume.SetResult(true);
 
         orderCreated = null;
     }
@@ -93,7 +93,7 @@
             return;
         }
 
-        OrderCreatedConsumer.Resume.SetResult(false);
+        ReserveOrderConsumer.Resume.SetResult(false);
 
         orderCreated = null;
     }

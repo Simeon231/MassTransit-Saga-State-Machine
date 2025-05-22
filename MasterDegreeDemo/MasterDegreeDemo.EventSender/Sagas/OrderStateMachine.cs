@@ -19,23 +19,23 @@ namespace MasterDegreeDemo.EventSender.Sagas
             ConfigureStates();
         }
 
-        public State OrderCreated { get; }
-        public State OrderReserved { get; }
-        public State OrderReservationFailed { get; }
-        public State OrderReservationReverted { get; }
-        public State OrderPaymentSucceeded { get; }
-        public State OrderPaymentFailed { get; }
+        public State Submitted { get; }
+        public State Reserved { get; }
+        public State ReservationFailed { get; }
+        public State ReservationReverted { get; }
+        public State PaymentCaptured { get; }
+        public State PaymentFailed { get; }
 
-        public Event<OrderCreated> OrderCreatedEvent { get; }
+        public Event<SubmitOrder> OrderSubmittedEvent { get; }
         public Event<OrderReserved> OrderReservedEvent { get; }
         public Event<OrderReservationFailed> OrderReservationFailedEvent { get; }
         public Event<OrderReservationReverted> OrderReservationRevertedEvent { get; }
-        public Event<OrderPaymentSucceeded> OrderPaymentSucceededEvent { get; }
+        public Event<OrderPaymentProcessed> OrderPaymentSucceededEvent { get; }
         public Event<OrderPaymentFailed> OrderPaymentFailedEvent { get; }
 
         private void ConfigureEvents()
         {
-            Event(() => OrderCreatedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
+            Event(() => OrderSubmittedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
             Event(() => OrderReservedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
             Event(() => OrderReservationFailedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
             Event(() => OrderReservationRevertedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
@@ -45,24 +45,32 @@ namespace MasterDegreeDemo.EventSender.Sagas
 
         private void ConfigureStates()
         {
-            Initially(When(OrderCreatedEvent)
+            Initially(When(OrderSubmittedEvent)
                 .Then(context =>
                 {
                     context.Saga.Id = context.Message.Order.Id;
                     context.Saga.ProductName = context.Message.Order.ProductName;
                 })
-                .TransitionTo(OrderCreated));
+                .Publish(x => new ReserveOrder(x.Message.Order))
+                .TransitionTo(Submitted));
 
-            During(OrderCreated,
-                When(OrderReservedEvent).TransitionTo(OrderReserved),
-                When(OrderReservationFailedEvent).TransitionTo(OrderReservationFailed));
+            During(Submitted,
+                When(OrderReservedEvent)
+                    .Publish(x => new ProcessOrderPayment(x.Message.Order))
+                    .TransitionTo(Reserved),
+                When(OrderReservationFailedEvent)
+                    .TransitionTo(ReservationFailed));
 
-            During(OrderReserved,
-                When(OrderPaymentSucceededEvent).TransitionTo(OrderPaymentSucceeded),
-                When(OrderPaymentFailedEvent).TransitionTo(OrderPaymentFailed));
+            During(Reserved,
+                When(OrderPaymentSucceededEvent)
+                    .TransitionTo(PaymentCaptured),
+                When(OrderPaymentFailedEvent)
+                    .Publish(x => new RevertOrderReservation(x.Message.Order))
+                    .TransitionTo(PaymentFailed));
 
-            During(OrderPaymentFailed,
-                When(OrderReservationRevertedEvent).TransitionTo(OrderReservationReverted));
+            During(PaymentFailed,
+                When(OrderReservationRevertedEvent)
+                    .TransitionTo(ReservationReverted));
 
             WhenEnterAny(x =>
                 x.Then(binder =>

@@ -12,15 +12,17 @@ public static class Extensions
             conf.AddSagaStateMachinesFromNamespaceContaining(assemblyMarker);
             conf.AddConsumersFromNamespaceContaining(assemblyMarker);
 
-            conf.UsingAmazonSqs((context, cfg) =>
+            conf.UsingAmazonSqs((context, configurator) =>
             {
-                cfg.Host("eu-west-1", _ => { });
+                configurator.Host("eu-west-1", _ => { });
 
-                var prefixEntityFormatter = new PrefixEntityNameFormatter(cfg.MessageTopology.EntityNameFormatter, environment);
-                cfg.MessageTopology.SetEntityNameFormatter(prefixEntityFormatter);
+                var prefixEntityFormatter = new PrefixEntityNameFormatter(configurator.MessageTopology.EntityNameFormatter, environment);
+                configurator.MessageTopology.SetEntityNameFormatter(prefixEntityFormatter);
 
                 var kebabEndpointFormatter = new KebabCaseEndpointNameFormatter(environment);
-                cfg.ConfigureEndpoints(context, kebabEndpointFormatter);
+                configurator.ConfigureEndpoints(context, kebabEndpointFormatter);
+
+                configurator.UseMessageRetry(r => r.Interval(retryCount: 5, interval: 1000));
             });
         });
     }
