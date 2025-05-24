@@ -14,10 +14,12 @@
 
 <PageTitle>Orders</PageTitle>
 
-<div class="container d-flex flex-column gap-2">
+<div class="container d-flex flex-column gap-3">
     <h1>Orders</h1>
-    <InputText @bind-Value="productName" DisplayName="Product"/>
-    <button @onclick="PublishEvent" class="btn btn-primary">Publish</button>
+    <div class="d-flex flex-row gap-3">
+        <InputText class="flex-grow-1" @bind-Value="productName" DisplayName="Product" />
+        <button @onclick="PublishEvent" class="btn btn-primary flex-grow-1">Publish</button>
+    </div>
 
     <Grid @ref="grid" TItem="OrderSaga" Class="table table-hover table-bordered table-striped"
     Data="OrderStateMachine.Sagas.Values" Responsive="true">

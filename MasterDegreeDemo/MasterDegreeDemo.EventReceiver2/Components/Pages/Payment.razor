@@ -12,7 +12,7 @@
 
 <PageTitle>Payment</PageTitle>
 
-<div class="container d-flex flex-column gap-2">
+<div class="container d-flex flex-column gap-3">
     <h1>Payment</h1>
     @if (order is null)
     {
@@ -21,8 +21,10 @@
     else
     {
         <h3>@order.ProductName product received</h3>
-        <button @onclick="PayOrder" class="btn btn-success">Pay</button>
-        <button @onclick="DeclineOrder" class="btn btn-danger">Decline</button>
+        <div class="d-flex flex-row gap-3">
+            <button @onclick="PayOrder" class="btn btn-success flex-grow-1">Pay</button>
+            <button @onclick="DeclineOrder" class="btn btn-danger flex-grow-1">Decline</button>
+        </div>
     }
 </div>
 

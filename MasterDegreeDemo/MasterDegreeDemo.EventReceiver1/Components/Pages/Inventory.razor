@@ -22,8 +22,10 @@
     else
     {
         <h3>@orderCreated.ProductName product received</h3>
-        <button @onclick="AcceptOrder" class="btn btn-success">Reserve</button>
-        <button @onclick="DeclineOrder" class="btn btn-danger">Decline</button>
+        <div class="d-flex flex-row gap-3">
+            <button @onclick="AcceptOrder" class="btn btn-success flex-grow-1">Reserve</button>
+            <button @onclick="DeclineOrder" class="btn btn-danger flex-grow-1">Decline</button>
+        </div>
     }
 
     <Grid @ref="grid" Data="Orders.Values" TItem="Order" Class="table table-hover table-bordered table-striped"
