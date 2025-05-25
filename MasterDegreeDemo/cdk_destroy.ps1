@@ -1,1 +1,1 @@
-cdk destroy --require-approval never
+cdk destroy --force
