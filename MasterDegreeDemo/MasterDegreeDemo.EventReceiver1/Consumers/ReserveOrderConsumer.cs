@@ -17,25 +17,30 @@ namespace MasterDegreeDemo.EventReceiver1.Consumers
 
             if (OnReceived is null)
             {
-                logger.LogWarning("No listeners");
+                logger.LogWarning("No listeners found");
                 return;
             }
 
-            OnReceived.Invoke(context.Message.Order);
-
-            var success = await Resume.Task;
-            if (success)
+            bool isSuccessful = await ReserveOrder(context.Message.Order);
+            if (isSuccessful)
             {
                 logger.LogInformation("Order reserved with id {Id}", context.Message.Order.Id);
                 await context.Publish(new OrderReserved(context.Message.Order));
             }
             else
             {
-                logger.LogInformation("Order reservation failed with id {Id}", context.Message.Order.Id);
-                await context.Publish(new OrderReservationFailed(context.Message.Order));
+                logger.LogError("Order reservation failed with id {Id}", context.Message.Order.Id);
+                throw new Exception($"Order reservation failed with id {context.Message.Order.Id}");
             }
+        }
 
+        private static async Task<bool> ReserveOrder(Order order)
+        {
             Resume = CreateTaskCompletionSource();
+
+            OnReceived.Invoke(order);
+
+            return await Resume.Task;
         }
 
         private static TaskCompletionSource<bool> CreateTaskCompletionSource()

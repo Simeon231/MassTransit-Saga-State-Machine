@@ -21,8 +21,6 @@ public static class Extensions
 
                 var kebabEndpointFormatter = new KebabCaseEndpointNameFormatter(environment);
                 configurator.ConfigureEndpoints(context, kebabEndpointFormatter);
-
-                configurator.UseMessageRetry(r => r.Interval(retryCount: 5, interval: 1000));
             });
         });
     }

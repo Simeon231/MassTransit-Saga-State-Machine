@@ -15,16 +15,24 @@
 
 <div class="container d-flex flex-column gap-2">
     <h1>Invetory</h1>
-    @if (orderCreated is null)
+    @if (orderCreated is null && orderReserved is null)
     {
         <h3>Nothing received</h3>
     }
-    else
+    else if(orderCreated is not null)
     {
-        <h3>@orderCreated.ProductName product received</h3>
+        <h3>Reservation requested for @orderCreated.ProductName product</h3>
         <div class="d-flex flex-row gap-3">
             <button @onclick="AcceptOrder" class="btn btn-success flex-grow-1">Reserve</button>
-            <button @onclick="DeclineOrder" class="btn btn-danger flex-grow-1">Decline</button>
+            <button @onclick="DeclineOrderCreation" class="btn btn-danger flex-grow-1">Decline</button>
+        </div>
+    }
+    else if (orderReserved is not null)
+    {
+        <h3>Compensation requested for @orderReserved.ProductName product</h3>
+        <div class="d-flex flex-row gap-3">
+            <button @onclick="RevertOrder" class="btn btn-success flex-grow-1">Compensate</button>
+            <button @onclick="DeclineOrderCompensation" class="btn btn-danger flex-grow-1">Decline</button>
         </div>
     }
 
@@ -43,19 +51,20 @@
     private static Dictionary<Guid, Order> Orders = [];
 
     private Order? orderCreated;
+    private Order? orderReserved;
 
     private Grid<Order> grid = default!;
 
     public void Dispose()
     {
         ReserveOrderConsumer.OnReceived -= ReceiveOrderCreated;
-        RevertOrderReservationConsumer.OnReceived -= ReceivePaymentFailed;
+        CompensateOrderReservationConsumer.OnReceived -= ReceiveOrderReserved;
     }
 
     protected override void OnInitialized()
     {
         ReserveOrderConsumer.OnReceived += ReceiveOrderCreated;
-        RevertOrderReservationConsumer.OnReceived += ReceivePaymentFailed;
+        CompensateOrderReservationConsumer.OnReceived += ReceiveOrderReserved;
     }
 
     private async void ReceiveOrderCreated(Order order)
@@ -65,11 +74,11 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async void ReceivePaymentFailed(Order order)
+    private async void ReceiveOrderReserved(Order order)
     {
-        Orders.Remove(order.Id);
+        orderReserved = order;
 
-        await grid.RefreshDataAsync();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task AcceptOrder()
@@ -88,7 +97,7 @@
         orderCreated = null;
     }
 
-    private void DeclineOrder()
+    private void DeclineOrderCreation()
     {
         if (orderCreated is null)
         {
@@ -98,5 +107,33 @@
         ReserveOrderConsumer.Resume.SetResult(false);
 
         orderCreated = null;
+    }
+
+    private async Task RevertOrder()
+    {
+        if (orderReserved is null)
+        {
+            return;
+        }
+
+        Orders.Remove(orderReserved.Id);
+
+        await grid.RefreshDataAsync();
+
+        CompensateOrderReservationConsumer.Resume.SetResult(true);
+
+        orderReserved = null;
+    }
+
+    private void DeclineOrderCompensation()
+    {
+        if (orderReserved is null)
+        {
+            return;
+        }
+
+        CompensateOrderReservationConsumer.Resume.SetResult(false);
+
+        orderReserved = null;
     }
 }

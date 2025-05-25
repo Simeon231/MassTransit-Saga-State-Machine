@@ -17,14 +17,12 @@ namespace MasterDegreeDemo.EventReceiver2.Consumers
 
             if (OnReceived is null)
             {
-                logger.LogWarning("No listeners");
+                logger.LogWarning("No listeners found");
                 return;
             }
 
-            OnReceived.Invoke(context.Message.Order);
-
-            var success = await Resume.Task;
-            if (success)
+            bool isSuccessful = await ProcessPayment(context.Message.Order);
+            if (isSuccessful)
             {
                 logger.LogInformation("Payment successful with id {Id}", context.Message.Order.Id);
 
@@ -33,11 +31,17 @@ namespace MasterDegreeDemo.EventReceiver2.Consumers
             else
             {
                 logger.LogError("Payment failed with id {Id}", context.Message.Order.Id);
-
-                await context.Publish(new OrderPaymentFailed(context.Message.Order));
+                throw new Exception($"Payment failed with id {context.Message.Order.Id}");
             }
+        }
 
+        private static async Task<bool> ProcessPayment(Order order)
+        {
             Resume = CreateTaskCompletionSource();
+
+            OnReceived.Invoke(order);
+
+            return await Resume.Task;
         }
 
         private static TaskCompletionSource<bool> CreateTaskCompletionSource()
