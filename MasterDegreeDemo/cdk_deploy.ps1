@@ -1,8 +1,8 @@
-try {
-    docker info 2>$null | Out-Null
-} catch {
+$dockerStatus = docker info 2>&1
+
+if ($LASTEXITCODE -ne 0 -or $dockerStatus -like "*Cannot connect*") {
     Write-Host ""
-    Write-Host "[ERROR] Docker is not running! Please start Docker Desktop." -ForegroundColor Red
+    Write-Host "[ERROR] Docker is not running or not responsive. Please start Docker Desktop." -ForegroundColor Red
     exit 1
 }
 
