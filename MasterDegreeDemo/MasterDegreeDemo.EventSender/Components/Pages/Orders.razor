@@ -18,7 +18,7 @@
     <h1>Orders</h1>
     <div class="d-flex flex-row gap-3">
         <InputText class="flex-grow-1" @bind-Value="productName" DisplayName="Product" />
-        <button @onclick="PublishEvent" class="btn btn-primary flex-grow-1">Publish</button>
+        <button @onclick="SubmitEvent" class="btn btn-primary flex-grow-1">Submit</button>
     </div>
 
     <Grid @ref="grid" TItem="OrderSaga" Class="table table-hover table-bordered table-striped"
@@ -57,7 +57,7 @@
         await grid.RefreshDataAsync();
     }
 
-    private async Task PublishEvent()
+    private async Task SubmitEvent()
     {
         if (productName is null)
         {
