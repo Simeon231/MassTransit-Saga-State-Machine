@@ -23,32 +23,32 @@ namespace MasterDegreeDemo.EventSender.Sagas
         public State Reserved { get; }
         public State ReservationFaulted { get; }
         public State ReservationCompensated { get; }
-        public State PaymentCaptured { get; }
-        public State PaymentFailed { get; }
-        public State CompensationFailed { get; set; }
+        public State PaymentProcessed { get; }
+        public State PaymentFaulted { get; }
+        public State CompensationFaulted { get; set; }
 
-        public Event<SubmitOrder> SubmittedEvent { get; }
-        public Event<OrderReserved> ReservedEvent { get; }
-        public Event<Fault<ReserveOrder>> ReservationFaultedEvent { get; }
-        public Event<OrderReservationCompensated> ReservationCompensatedEvent { get; }
-        public Event<Fault<CompensateOrderReservation>> CompensateReservationFaultedEvent { get; }
-        public Event<OrderPaymentProcessed> PaymentSucceededEvent { get; }
-        public Event<Fault<ProcessOrderPayment>> PaymentFaultedEvent { get; }
+        public Event<SubmitOrder> SubmitOrderEvent { get; }
+        public Event<OrderReserved> OrderReservedEvent { get; }
+        public Event<Fault<ReserveOrder>> ReserveOrderFaultedEvent { get; }
+        public Event<OrderReservationCompensated> OrderReservationCompensatedEvent { get; }
+        public Event<Fault<CompensateOrderReservation>> CompensateOrderReservationFaultedEvent { get; }
+        public Event<OrderPaymentProcessed> OrderPaymentProcessedEvent { get; }
+        public Event<Fault<ProcessOrderPayment>> ProcessOrderPaymentFaultedEvent { get; }
 
         private void ConfigureEvents()
         {
-            Event(() => SubmittedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
-            Event(() => ReservedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
-            Event(() => ReservationFaultedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Message.Order.Id));
-            Event(() => ReservationCompensatedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
-            Event(() => CompensateReservationFaultedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Message.Order.Id));
-            Event(() => PaymentSucceededEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
-            Event(() => PaymentFaultedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Message.Order.Id));
+            Event(() => SubmitOrderEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
+            Event(() => OrderReservedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
+            Event(() => ReserveOrderFaultedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Message.Order.Id));
+            Event(() => OrderReservationCompensatedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
+            Event(() => CompensateOrderReservationFaultedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Message.Order.Id));
+            Event(() => OrderPaymentProcessedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
+            Event(() => ProcessOrderPaymentFaultedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Message.Order.Id));
         }
 
         private void ConfigureStates(ILogger<OrderStateMachine> logger)
         {
-            Initially(When(SubmittedEvent)
+            Initially(When(SubmitOrderEvent)
                 .Then(context =>
                 {
                     context.Saga.Id = context.Message.Order.Id;
@@ -58,30 +58,30 @@ namespace MasterDegreeDemo.EventSender.Sagas
                 .TransitionTo(Submitted));
 
             During(Submitted,
-                When(ReservedEvent)
+                When(OrderReservedEvent)
                     .Publish(x => new ProcessOrderPayment(x.Message.Order))
                     .TransitionTo(Reserved),
-                When(ReservationFaultedEvent)
+                When(ReserveOrderFaultedEvent)
                     .TransitionTo(ReservationFaulted));
 
             During(Reserved,
-                When(PaymentSucceededEvent)
-                    .TransitionTo(PaymentCaptured),
-                When(PaymentFaultedEvent)
+                When(OrderPaymentProcessedEvent)
+                    .TransitionTo(PaymentProcessed),
+                When(ProcessOrderPaymentFaultedEvent)
                     .Publish(x => new CompensateOrderReservation(x.Message.Message.Order))
-                    .TransitionTo(PaymentFailed));
+                    .TransitionTo(PaymentFaulted));
 
-            During(PaymentFailed,
-                When(ReservationCompensatedEvent)
+            During(PaymentFaulted,
+                When(OrderReservationCompensatedEvent)
                     .TransitionTo(ReservationCompensated),
-                When(CompensateReservationFaultedEvent)
+                When(CompensateOrderReservationFaultedEvent)
                     .Then(context =>
                     {
                         logger.LogCritical(
-                            "Order with an id {Id} could not be compensated. Attention required",
+                            "Order with an id {Id} could not be compensated!",
                             context.Message.Message.Order.Id);
                     })
-                    .TransitionTo(CompensationFailed));
+                    .TransitionTo(CompensationFaulted));
 
             WhenEnterAny(x =>
                 x.Then(binder =>
