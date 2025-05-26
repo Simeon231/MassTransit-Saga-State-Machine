@@ -7,19 +7,11 @@ namespace MasterDegreeDemo.EventReceiver1.Consumers
     {
         public static event Action<Order> OnReceived = null!;
 
-        private readonly ILogger<ReserveOrderConsumer> logger = logger;
-
         public static TaskCompletionSource<bool> Resume { get; private set; } = CreateTaskCompletionSource();
 
         public async Task Consume(ConsumeContext<ReserveOrder> context)
         {
             logger.LogInformation("Received on {Consumer} an event with id {Id}", nameof(ReserveOrderConsumer), context.Message.Order.Id);
-
-            if (OnReceived is null)
-            {
-                logger.LogWarning("No listeners found");
-                return;
-            }
 
             bool isSuccessful = await ReserveOrder(context.Message.Order);
             if (isSuccessful)
@@ -34,8 +26,14 @@ namespace MasterDegreeDemo.EventReceiver1.Consumers
             }
         }
 
-        private static async Task<bool> ReserveOrder(Order order)
+        private async Task<bool> ReserveOrder(Order order)
         {
+            if (OnReceived is null)
+            {
+                logger.LogWarning("No listeners found");
+                return false;
+            }
+
             Resume = CreateTaskCompletionSource();
 
             OnReceived.Invoke(order);

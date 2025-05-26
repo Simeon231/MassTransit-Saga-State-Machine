@@ -13,12 +13,6 @@ namespace MasterDegreeDemo.EventReceiver1.Consumers
         {
             logger.LogInformation("Received on {Consumer} an event with id {Id}", nameof(CompensateOrderReservationConsumer), context.Message.Order.Id);
 
-            if (OnReceived is null)
-            {
-                logger.LogWarning("No listeners found");
-                return;
-            }
-
             bool isSuccessful = await CompensateOrder(context.Message.Order);
             if (isSuccessful)
             {
@@ -32,8 +26,14 @@ namespace MasterDegreeDemo.EventReceiver1.Consumers
             }
         }
 
-        private static async Task<bool> CompensateOrder(Order order)
+        private async Task<bool> CompensateOrder(Order order)
         {
+            if (OnReceived is null)
+            {
+                logger.LogWarning("No listeners found");
+                return false;
+            }
+
             Resume = CreateTaskCompletionSource();
 
             OnReceived.Invoke(order);

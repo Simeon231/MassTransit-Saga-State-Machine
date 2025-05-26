@@ -5,8 +5,6 @@ namespace MasterDegreeDemo.EventReceiver2.Consumers
 {
     public class ProcessOrderPaymentConsumer(ILogger<ProcessOrderPaymentConsumer> logger) : IConsumer<ProcessOrderPayment>
     {
-        private readonly ILogger<ProcessOrderPaymentConsumer> logger = logger;
-
         public static event Action<Order> OnReceived = null!;
 
         public static TaskCompletionSource<bool> Resume { get; private set; } = CreateTaskCompletionSource();
@@ -14,12 +12,6 @@ namespace MasterDegreeDemo.EventReceiver2.Consumers
         public async Task Consume(ConsumeContext<ProcessOrderPayment> context)
         {
             logger.LogInformation("Received on {Consumer} an event with id {Id}", nameof(ProcessOrderPaymentConsumer), context.Message.Order.Id);
-
-            if (OnReceived is null)
-            {
-                logger.LogWarning("No listeners found");
-                return;
-            }
 
             bool isSuccessful = await ProcessPayment(context.Message.Order);
             if (isSuccessful)
@@ -35,8 +27,14 @@ namespace MasterDegreeDemo.EventReceiver2.Consumers
             }
         }
 
-        private static async Task<bool> ProcessPayment(Order order)
+        private async Task<bool> ProcessPayment(Order order)
         {
+            if (OnReceived is null)
+            {
+                logger.LogWarning("No listeners found");
+                return false;
+            }
+
             Resume = CreateTaskCompletionSource();
 
             OnReceived.Invoke(order);
