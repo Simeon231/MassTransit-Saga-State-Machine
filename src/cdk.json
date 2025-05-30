@@ -1,5 +1,5 @@
 {
-  "app": "dotnet run --project ./MasterDegreeDemo.CDK/MasterDegreeDemo.CDK.csproj",
+  "app": "dotnet run --project ./MassTransitSaga.CDK/MassTransitSaga.CDK.csproj",
   "profile": "default",
   "watch": {
     "include": [

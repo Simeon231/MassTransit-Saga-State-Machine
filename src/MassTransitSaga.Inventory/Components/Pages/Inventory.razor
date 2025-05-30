@@ -1,0 +1,139 @@
+﻿@using BlazorBootstrap
+@using MassTransit
+@using MassTransitSaga.Inventory.Consumers
+@using MassTransitSaga.Shared
+
+@page "/"
+
+@implements IDisposable
+
+@inject IPublishEndpoint PublishEndpoint
+
+@rendermode InteractiveServer
+
+<PageTitle>Invetory</PageTitle>
+
+<div class="container d-flex flex-column gap-2">
+    <h1>Invetory</h1>
+    @if (orderCreated is null && orderReserved is null)
+    {
+        <h3>Nothing received</h3>
+    }
+    else if(orderCreated is not null)
+    {
+        <h3>Reservation requested for @orderCreated.ProductName product</h3>
+        <div class="d-flex flex-row gap-3">
+            <button @onclick="AcceptOrder" class="btn btn-success flex-grow-1">Reserve</button>
+            <button @onclick="DeclineOrderCreation" class="btn btn-danger flex-grow-1">Decline</button>
+        </div>
+    }
+    else if (orderReserved is not null)
+    {
+        <h3>Compensation requested for @orderReserved.ProductName product</h3>
+        <div class="d-flex flex-row gap-3">
+            <button @onclick="RevertOrder" class="btn btn-success flex-grow-1">Compensate</button>
+            <button @onclick="DeclineOrderCompensation" class="btn btn-danger flex-grow-1">Decline</button>
+        </div>
+    }
+
+    <Grid @ref="grid" Data="Orders.Values" TItem="Order" Class="table table-hover table-bordered table-striped"
+    Responsive="true">
+        <GridColumn TItem="Order" HeaderText="Id" PropertyName="Id">
+            @context.Id
+        </GridColumn>
+        <GridColumn TItem="Order" HeaderText="Product" PropertyName="ProductName">
+            @context.ProductName
+        </GridColumn>
+    </Grid>
+</div>
+
+@code {
+    private static Dictionary<Guid, Order> Orders = [];
+
+    private Order? orderCreated;
+    private Order? orderReserved;
+
+    private Grid<Order> grid = default!;
+
+    public void Dispose()
+    {
+        ReserveOrderConsumer.OnReceived -= ReceiveOrderCreated;
+        CompensateOrderReservationConsumer.OnReceived -= ReceiveOrderReserved;
+    }
+
+    protected override void OnInitialized()
+    {
+        ReserveOrderConsumer.OnReceived += ReceiveOrderCreated;
+        CompensateOrderReservationConsumer.OnReceived += ReceiveOrderReserved;
+    }
+
+    private async void ReceiveOrderCreated(Order order)
+    {
+        this.orderCreated = order;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void ReceiveOrderReserved(Order order)
+    {
+        orderReserved = order;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task AcceptOrder()
+    {
+        if (orderCreated is null)
+        {
+            return;
+        }
+
+        Orders.Add(orderCreated.Id, orderCreated);
+
+        await grid.RefreshDataAsync();
+
+        ReserveOrderConsumer.Resume.SetResult(true);
+
+        orderCreated = null;
+    }
+
+    private void DeclineOrderCreation()
+    {
+        if (orderCreated is null)
+        {
+            return;
+        }
+
+        ReserveOrderConsumer.Resume.SetResult(false);
+
+        orderCreated = null;
+    }
+
+    private async Task RevertOrder()
+    {
+        if (orderReserved is null)
+        {
+            return;
+        }
+
+        Orders.Remove(orderReserved.Id);
+
+        await grid.RefreshDataAsync();
+
+        CompensateOrderReservationConsumer.Resume.SetResult(true);
+
+        orderReserved = null;
+    }
+
+    private void DeclineOrderCompensation()
+    {
+        if (orderReserved is null)
+        {
+            return;
+        }
+
+        CompensateOrderReservationConsumer.Resume.SetResult(false);
+
+        orderReserved = null;
+    }
+}
