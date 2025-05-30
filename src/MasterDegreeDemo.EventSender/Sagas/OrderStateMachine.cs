@@ -7,9 +7,6 @@ namespace MasterDegreeDemo.EventSender.Sagas
 {
     public class OrderStateMachine : MassTransitStateMachine<OrderSaga>
     {
-        public static event Action OnReceive = null!;
-        public static Dictionary<Guid, OrderSaga> Sagas = [];
-
         public OrderStateMachine(ILogger<OrderStateMachine> logger)
         {
             InstanceState(x => x.State);
@@ -37,13 +34,20 @@ namespace MasterDegreeDemo.EventSender.Sagas
 
         private void ConfigureEvents()
         {
-            Event(() => SubmitOrderEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
-            Event(() => OrderReservedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
-            Event(() => ReserveOrderFaultedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Message.Order.Id));
-            Event(() => OrderReservationCompensatedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
-            Event(() => CompensateOrderReservationFaultedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Message.Order.Id));
-            Event(() => OrderPaymentProcessedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Order.Id));
-            Event(() => ProcessOrderPaymentFaultedEvent, configutor => configutor.CorrelateById(saga => saga.Message.Message.Order.Id));
+            Event(() => SubmitOrderEvent, configutor => configutor
+                .CorrelateById(saga => saga.Message.Order.Id));
+            Event(() => OrderReservedEvent, configutor => configutor
+                .CorrelateById(saga => saga.Message.Order.Id));
+            Event(() => ReserveOrderFaultedEvent, configutor => configutor
+                .CorrelateById(saga => saga.Message.Message.Order.Id));
+            Event(() => OrderReservationCompensatedEvent, configutor => configutor
+                .CorrelateById(saga => saga.Message.Order.Id));
+            Event(() => CompensateOrderReservationFaultedEvent, configutor => configutor
+                .CorrelateById(saga => saga.Message.Message.Order.Id));
+            Event(() => OrderPaymentProcessedEvent, configutor => configutor
+                .CorrelateById(saga => saga.Message.Order.Id));
+            Event(() => ProcessOrderPaymentFaultedEvent, configutor => configutor
+                .CorrelateById(saga => saga.Message.Message.Order.Id));
         }
 
         private void ConfigureStates(ILogger<OrderStateMachine> logger)
@@ -103,5 +107,8 @@ namespace MasterDegreeDemo.EventSender.Sagas
                     OnReceive?.Invoke();
                 }));
         }
+
+        public static event Action OnReceive = null!;
+        public static Dictionary<Guid, OrderSaga> Sagas = [];
     }
 }

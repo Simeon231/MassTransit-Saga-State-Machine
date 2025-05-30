@@ -16,6 +16,9 @@ public static class Extensions
             {
                 configurator.Host("eu-west-1", _ => { });
 
+                // To prevent creation of a lot of queues.
+                configurator.AutoDelete = true;
+
                 var prefixEntityFormatter = new PrefixEntityNameFormatter(configurator.MessageTopology.EntityNameFormatter, environment);
                 configurator.MessageTopology.SetEntityNameFormatter(prefixEntityFormatter);
 

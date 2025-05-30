@@ -5,14 +5,8 @@ namespace MasterDegreeDemo.EventReceiver1.Consumers
 {
     public class ReserveOrderConsumer(ILogger<ReserveOrderConsumer> logger) : IConsumer<ReserveOrder>
     {
-        public static event Action<Order> OnReceived = null!;
-
-        public static TaskCompletionSource<bool> Resume { get; private set; } = CreateTaskCompletionSource();
-
         public async Task Consume(ConsumeContext<ReserveOrder> context)
         {
-            logger.LogInformation("Received on {Consumer} an event with id {Id}", nameof(ReserveOrderConsumer), context.Message.Order.Id);
-
             bool isSuccessful = await ReserveOrder(context.Message.Order);
             if (isSuccessful)
             {
@@ -45,5 +39,10 @@ namespace MasterDegreeDemo.EventReceiver1.Consumers
         {
             return new(TaskCreationOptions.RunContinuationsAsynchronously);
         }
+
+        public static event Action<Order> OnReceived = null!;
+
+        public static TaskCompletionSource<bool> Resume { get; private set; } = CreateTaskCompletionSource();
+
     }
 }
